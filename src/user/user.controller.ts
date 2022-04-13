@@ -43,7 +43,7 @@ export class UserController {
     updateUser: UpdateUserDto,
   ) {
     return {
-      data: await this.usersService.updateUser(updateUser),
+      data: await this.usersService.updateUser(id, updateUser),
       statusCode: HttpStatus.OK,
       message: 'success update user',
     };
