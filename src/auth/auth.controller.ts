@@ -3,20 +3,23 @@ import {
   Post,
   HttpStatus, Body,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import {AuthService } from './auth.service';
 import {UserLoginDto} from "./dto/user-login.dto";
+import {UserService} from "../user/user.service";
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+      private readonly authService: AuthService,
+      private readonly userService: UserService
+  ) {}
 
   @Post('login')
   async Login(@Body() loginUserDto: UserLoginDto ) {
-    const data = await this.authService.Login(loginUserDto);
     return {
-      data: data,
       statusCode: HttpStatus.OK,
-      message: 'success login',
+      message: 'Login Successful',
+      data: await this.authService.login(loginUserDto),
     };
   }
 

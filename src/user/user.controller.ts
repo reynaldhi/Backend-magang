@@ -15,7 +15,9 @@ import {UpdateUserDto} from "./dto/update-user.dto";
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly usersService: UserService) {}
+  constructor(
+      private readonly usersService: UserService
+    ){}
 
   @Post('')
   async create(@Body() createUserDto: CreateUserDto) {
@@ -58,3 +60,7 @@ export class UserController {
     };
   }
 }
+function Public() {
+    throw new Error('Function not implemented.');
+}
+

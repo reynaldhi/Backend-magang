@@ -18,20 +18,21 @@ export class UserService {
     return this.usersRepository.findOneByOrFail(result.identifiers[0].id);
   }
 
-
-  async findOneUsername(username: string) {
-    const user =await this.usersRepository.findOne({
-      where : {email: username}
-    })
-
+  async findOneByEmail(email: string) {
     try {
-      return user
-    }catch (e) {
+      const user = await this.usersRepository.findOneOrFail({
+        where: { email: email },
+      });
+
+      return {
+        user,
+      };
+    } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
             {
               statusCode: HttpStatus.NOT_FOUND,
-              message: 'Acount Not Found',
+              message: 'User not found',
             },
             HttpStatus.NOT_FOUND,
         );
