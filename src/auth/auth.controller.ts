@@ -1,19 +1,18 @@
 import {
   Controller,
   Post,
-  Get,
-  ParseUUIDPipe,
-  HttpStatus,
+  HttpStatus, Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import {UserLoginDto} from "./dto/user-login.dto";
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async Login() {
-    const data = await this.authService.Login();
+  async Login(@Body() loginUserDto: UserLoginDto ) {
+    const data = await this.authService.Login(loginUserDto);
     return {
       data: data,
       statusCode: HttpStatus.OK,

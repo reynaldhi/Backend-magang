@@ -20,7 +20,7 @@ export class UserController {
   @Post('')
   async create(@Body() createUserDto: CreateUserDto) {
     return {
-      data: await this.usersService.CreateUser(),
+      data: await this.usersService.CreateUser(createUserDto),
       statusCode: HttpStatus.CREATED,
       message: 'success create user',
     };
@@ -52,7 +52,7 @@ export class UserController {
   @Delete(':id')
   async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
     return {
-      data: await this.usersService.DeleteUser(),
+      data: await this.usersService.DeleteUser(id),
       statusCode: HttpStatus.OK,
       message: 'success delete user',
     };

@@ -18,13 +18,36 @@ export class UserService {
     return this.usersRepository.findOneByOrFail(result.identifiers[0].id);
   }
 
+
+  async findOneUsername(username: string) {
+    const user =await this.usersRepository.findOne({
+      where : {email: username}
+    })
+
+    try {
+      return user
+    }catch (e) {
+      if (e instanceof EntityNotFoundError) {
+        throw new HttpException(
+            {
+              statusCode: HttpStatus.NOT_FOUND,
+              message: 'Acount Not Found',
+            },
+            HttpStatus.NOT_FOUND,
+        );
+      } else {
+        throw e;
+      }
+    }
+  }
+
   async getAll() {
     return this.usersRepository.findAndCount();
   }
 
   async findOne(id: string) {
     try {
-      return await this.usersRepository.findOneByOrFail(id);
+      return await this.usersRepository.findOneByOrFail({id});
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
@@ -40,29 +63,56 @@ export class UserService {
     }
   }
 
-  async updateUser(id: string, updateUser: UpdateUserDto) {
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
     try {
-      await this.usersRepository.findOneByOrFail(id);
+      await this.usersRepository.findOneOrFail({
+        where: {
+          id,
+        },
+      });
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            error: 'Data not found',
-          },
-          HttpStatus.NOT_FOUND,
+            {
+              statusCode: HttpStatus.NOT_FOUND,
+              error: 'Data not found',
+            },
+            HttpStatus.NOT_FOUND,
         );
       } else {
         throw e;
       }
-
-      const result = await this.usersRepository.insert(updateUser);
-
-      return this.usersRepository.findOneByOrFail(id);
     }
+
+    await this.usersRepository.update(id, updateUserDto);
+
+    return this.usersRepository.findOneOrFail({
+      where: {
+        id,
+      },
+    });
   }
 
-  async DeleteUser() {
-    console.log('Delete User');
+
+  async DeleteUser(id: string) {
+    try {
+      await this.usersRepository.findOneOrFail({
+        where: {id}
+      })
+    }catch (e) {
+      if (e instanceof EntityNotFoundError) {
+        throw new HttpException(
+            {
+              statusCode: HttpStatus.NOT_FOUND,
+              error: 'Data not found',
+            },
+            HttpStatus.NOT_FOUND,
+        );
+      } else {
+        throw e;
+      }
+    }
+
+    await this.usersRepository.delete(id);
   }
 }
