@@ -4,6 +4,8 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { User } from './entity/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as uuid from 'uuid';
+import { hashPassword } from '../helper/hash_password';
 
 @Injectable()
 export class UserService {
@@ -13,9 +15,18 @@ export class UserService {
   ) {}
 
   async CreateUser(createUserDto: CreateUserDto) {
-    const result = await this.usersRepository.insert(createUserDto);
+    const salt = uuid.v4();
+    const result = await this.usersRepository.insert({
+      ...createUserDto,
+      password: await hashPassword(createUserDto.password, salt),
+      salt: salt,
+    });
 
-    return this.usersRepository.findOneByOrFail(result.identifiers[0].id);
+    return this.usersRepository.findOneOrFail({
+      where: {
+        id: result.identifiers[0].id,
+      },
+    });
   }
 
   async findOneByEmail(email: string) {
@@ -30,11 +41,11 @@ export class UserService {
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
-            {
-              statusCode: HttpStatus.NOT_FOUND,
-              message: 'User not found',
-            },
-            HttpStatus.NOT_FOUND,
+          {
+            statusCode: HttpStatus.NOT_FOUND,
+            message: 'User not found',
+          },
+          HttpStatus.NOT_FOUND,
         );
       } else {
         throw e;
@@ -48,7 +59,7 @@ export class UserService {
 
   async findOne(id: string) {
     try {
-      return await this.usersRepository.findOneByOrFail({id});
+      return await this.usersRepository.findOneByOrFail({ id });
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
@@ -74,11 +85,11 @@ export class UserService {
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
-            {
-              statusCode: HttpStatus.NOT_FOUND,
-              error: 'Data not found',
-            },
-            HttpStatus.NOT_FOUND,
+          {
+            statusCode: HttpStatus.NOT_FOUND,
+            error: 'Data not found',
+          },
+          HttpStatus.NOT_FOUND,
         );
       } else {
         throw e;
@@ -94,20 +105,19 @@ export class UserService {
     });
   }
 
-
   async DeleteUser(id: string) {
     try {
       await this.usersRepository.findOneOrFail({
-        where: {id}
-      })
-    }catch (e) {
+        where: { id },
+      });
+    } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(
-            {
-              statusCode: HttpStatus.NOT_FOUND,
-              error: 'Data not found',
-            },
-            HttpStatus.NOT_FOUND,
+          {
+            statusCode: HttpStatus.NOT_FOUND,
+            error: 'Data not found',
+          },
+          HttpStatus.NOT_FOUND,
         );
       } else {
         throw e;

@@ -2,37 +2,36 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   UpdateDateColumn,
-  VersionColumn,
   DeleteDateColumn,
+  CreateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { TypeContent } from '../../typeContent/entity/typeContent.entity';
 
 @Entity()
-export class User {
+export class Content {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  firstname: string;
+  @ManyToOne(
+    () => {
+      return TypeContent;
+    },
+    (typeContent) => {
+      return typeContent.content;
+    },
+  )
+  typeContent: TypeContent;
 
   @Column()
-  username: string;
+  title: string;
 
   @Column()
-  lastname: string;
+  contents: string;
 
   @Column()
-  email: string;
-
-  @Column()
-  salt: string;
-
-  @Column()
-  password: string;
-
-  @Column({ default: true })
-  isActive: boolean;
+  img_url: string;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
@@ -51,7 +50,4 @@ export class User {
     nullable: true,
   })
   deletedAt: Date;
-
-  @VersionColumn()
-  version: number;
 }
