@@ -13,7 +13,8 @@ import {
 import { ContentService } from './content.service';
 import { CreateContentDto } from './dto/create-content.dto';
 import { UpdateContentDto } from './dto/update-content.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @ApiTags('v1/content')
 @Controller('v1/content')
@@ -21,22 +22,6 @@ export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create Type Content' })
-  @ApiResponse({
-    status: 201,
-    description: 'Content created successfully.',
-  })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiBody({
-    type: CreateContentDto,
-    schema: {
-      example: {
-        title: 'title',
-        contents: 'content',
-        typeContent_id: 'id',
-      },
-    },
-  })
   async create(@Body() createContentDto: CreateContentDto) {
     try {
       await this.contentService.create(createContentDto);
@@ -50,10 +35,6 @@ export class ContentController {
     }
   }
 
-  @ApiOperation({ summary: 'Get content' })
-  @ApiResponse({
-    status: 200,
-  })
   @Get()
   async findAll(@Query('search') search: string) {
     const { data, count } = await this.contentService.findAll(search);
@@ -67,10 +48,6 @@ export class ContentController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get detail content' })
-  @ApiResponse({
-    status: 200,
-  })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return {
       data: await this.contentService.findOne(id),
@@ -80,22 +57,6 @@ export class ContentController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update Content' })
-  @ApiResponse({
-    status: 200,
-    description: 'Content updated successfully.',
-  })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiBody({
-    type: CreateContentDto,
-    schema: {
-      example: {
-        title: 'title',
-        contents: 'content',
-        typeContent_id: 'id',
-      },
-    },
-  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateContentDto: UpdateContentDto,
@@ -107,12 +68,19 @@ export class ContentController {
     };
   }
 
+  @Put(':id')
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateStatusDto: UpdateStatusDto,
+  ) {
+    return {
+      data: await this.contentService.updateStatus(id, updateStatusDto),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    };
+  }
+
   @Delete(':id')
-  @ApiOperation({ summary: 'Create Type Content' })
-  @ApiResponse({
-    status: 200,
-    description: 'Content deleted successfully.',
-  })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.contentService.delete(id);
 

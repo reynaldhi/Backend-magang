@@ -1,32 +1,24 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { EntityNotFoundError, Repository } from 'typeorm';
-import { Content } from './entity/content.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateContentDto } from './dto/create-content.dto';
-import { UpdateContentDto } from './dto/update-content.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
+import { UpdateBookingDto } from './dto/update-booking.dto';
 import { TypeContent } from '../typeContent/entity/typeContent.entity';
-import { Company } from '../company/entity/company.entity';
-import { UpdateStatusDto } from './dto/update-status.dto';
+import { Content } from '../content/entity/content.entity';
 
 @Injectable()
-export class ContentService {
+export class BookingService {
   constructor(
     @InjectRepository(Content)
     private contentRepository: Repository<Content>,
     @InjectRepository(TypeContent)
     private typeContentRepository: Repository<TypeContent>,
-    @InjectRepository(Company)
-    private companyRepository: Repository<Company>,
   ) {}
 
-  async create(createContentDto: CreateContentDto) {
+  async create(createContentDto: CreateBookingDto) {
     try {
       const type = await this.typeContentRepository.findBy({
         id: createContentDto.typeContent_id,
-      });
-
-      const company = await this.companyRepository.findBy({
-        id: createContentDto.company_id,
       });
 
       const dataContent = new Content();
@@ -34,9 +26,7 @@ export class ContentService {
       dataContent.contents = createContentDto.contents;
       dataContent.img_url = createContentDto.img_url;
       dataContent.status = createContentDto.status;
-      dataContent.deadline = createContentDto.deadline;
       dataContent.typeContent = type[0];
-      dataContent.company = company[0];
 
       return this.contentRepository.save(dataContent);
     } catch (e) {
@@ -46,24 +36,13 @@ export class ContentService {
   }
 
   async findAll(params) {
-    await this.updateExpiredContent();
-
     const dataContent = this.contentRepository
       .createQueryBuilder('content')
-      .leftJoinAndSelect('content.typeContent', 'typeContent')
-      .leftJoinAndSelect('content.company', 'company');
+      .leftJoinAndSelect('content.typeContent', 'typeContent');
     if (params) {
-      if (params.typeContent_id) {
-        dataContent.andWhere('content.typeContent.id = :typeContentId', {
-          typeContentId: params.typeContent_id,
-        });
-      }
-
-      if (params.company_id) {
-        dataContent.andWhere('content.company.id = :companyId', {
-          companyId: params.company_id,
-        });
-      }
+      dataContent.andWhere('content.typeContent_id = typeContent_id', {
+        params,
+      });
     }
 
     const data = await dataContent.getMany();
@@ -75,28 +54,11 @@ export class ContentService {
     };
   }
 
-  private async updateExpiredContent(): Promise<void> {
-    const currentDate = new Date();
-
-    await this.contentRepository
-      .createQueryBuilder()
-      .update(Content)
-      .set({
-        status: false,
-        updatedAt: currentDate,
-      })
-      .where('deadline IS NOT NULL')
-      .andWhere('deadline < :currentDate', { currentDate })
-      .andWhere('status != :inactiveStatus', { inactiveStatus: false })
-      .execute();
-  }
-
   async findOne(id: string) {
     try {
       const content = this.contentRepository
         .createQueryBuilder('content')
         .leftJoinAndSelect('content.typeContent', 'typeContent')
-        .leftJoinAndSelect('content.company', 'company')
         .where('content.id = :id', { id })
         .getOne();
 
@@ -107,7 +69,7 @@ export class ContentService {
     }
   }
 
-  async update(id: string, updateContentDto: UpdateContentDto) {
+  async update(id: string, updateContentDto: UpdateBookingDto) {
     try {
       const content = await this.findOne(id);
 
@@ -124,9 +86,6 @@ export class ContentService {
       if (updateContentDto.status) {
         content.status = updateContentDto.status;
       }
-      if (updateContentDto.deadline) {
-        content.deadline = updateContentDto.deadline;
-      }
       if (updateContentDto.img_url) {
         content.img_url = updateContentDto.img_url;
       }
@@ -136,43 +95,9 @@ export class ContentService {
         });
         content.typeContent = newTypeContent[0];
       }
-      if (updateContentDto.company_id) {
-        const newCompany = await this.companyRepository.findBy({
-          id: updateContentDto.company_id,
-        });
-        content.company = newCompany[0];
-      }
 
       const updatedContent = await this.contentRepository.save(content);
       return updatedContent;
-    } catch (e) {
-      if (e instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            error: 'Data not found',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      } else {
-        throw e;
-      }
-    }
-  }
-
-  async updateStatus(id: string, updateStatusDto: UpdateStatusDto) {
-    try {
-      const content = await this.findOne(id);
-
-      if (!content) {
-        throw new Error('Content not found');
-      }
-
-      if (updateStatusDto.status) {
-        content.status = updateStatusDto.status;
-      }
-
-      return await this.contentRepository.save(content);
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new HttpException(

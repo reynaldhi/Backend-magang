@@ -1,24 +1,18 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
-export class UpdateContentDto {
-  @IsNotEmpty()
+export class BannerDto {
+  @IsOptional()
   title: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   contents: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   img_url: string[];
 
-  @IsNotEmpty()
-  deadline: Date;
-
-  @IsNotEmpty()
+  @IsOptional()
   status: boolean;
 
   @IsNotEmpty()
   typeContent_id: string;
-
-  @IsNotEmpty()
-  company_id: string;
 }

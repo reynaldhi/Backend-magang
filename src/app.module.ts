@@ -12,6 +12,9 @@ import { TypeContentModule } from './typeContent/typeContent.module';
 import { UploadModule } from './file/file.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { CompanyModule } from './company/company.module';
+import { BookingModule } from './bookingRoom/booking.module';
+import { BannerModule } from './banner/banner.module';
 
 @Module({
   imports: [
@@ -86,7 +89,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     UserModule,
     ContentModule,
     TypeContentModule,
+    CompanyModule,
+    BookingModule,
     UploadModule,
+    BannerModule,
   ],
 })
 export class AppModule {}

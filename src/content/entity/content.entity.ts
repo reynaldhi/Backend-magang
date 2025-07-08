@@ -8,6 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { TypeContent } from '../../typeContent/entity/typeContent.entity';
+import { Company } from '../../company/entity/company.entity';
 
 @Entity()
 export class Content {
@@ -24,14 +25,31 @@ export class Content {
   )
   typeContent: TypeContent;
 
+  @ManyToOne(
+    () => {
+      return Company;
+    },
+    (company) => {
+      return company.content;
+    },
+    { nullable: true },
+  )
+  company?: Company;
+
   @Column()
   title: string;
 
   @Column()
   contents: string;
 
+  @Column({ type: 'json' })
+  img_url: string[];
+
+  @Column({ nullable: true })
+  deadline?: Date;
+
   @Column()
-  img_url: string;
+  status?: boolean;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
